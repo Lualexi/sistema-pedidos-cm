@@ -1,0 +1,49 @@
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h5 class="card-title fw-bold mb-3"><i class="bi bi-box-seam me-2 text-primary"></i>Nuevo Producto</h5>
+                <form id="productForm">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" id="p-name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descripción</label>
+                        <input type="text" id="p-desc" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Precio ($)</label>
+                        <input type="number" step="0.01" id="p-price" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Stock Initial</label>
+                        <input type="number" id="p-stock" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Guardar Producto</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h5 class="card-title fw-bold mb-3"><i class="bi bi-list-ul me-2 text-primary"></i>Inventario Disponible</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Producto</th>
+                                <th>Descripción</th>
+                                <th>Precio</th>
+                                <th>Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

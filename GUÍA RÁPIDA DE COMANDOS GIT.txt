@@ -1,0 +1,77 @@
+GUÍA RÁPIDA DE COMANDOS GIT (INSTRUCTIVO)
+1. Configuración Inicial del Desarrollador
+Identificarse ante Git antes de hacer commits:
+	git config --global user.name "Tu Nombre"
+	git config --global user.email "tu_correo@ejemplo.com"
+
+2. Consulta de Estado e Inspección
+Ver en qué rama estás y qué archivos han cambiado:
+	git status
+
+Ver el historial de commits en formato de árbol:
+	git log --graph --oneline
+
+3. Creación y Movimiento entre Ramas
+Ver todas las ramas locales:
+	git branch
+
+Moverse a la rama de integración (develop):
+	git checkout develop
+
+Crear una nueva rama de trabajo (feature) y moverse a ella a la vez:
+	git checkout -b feature/nombre-funcionalidad
+
+Crear una rama partiendo exactamente desde la versión en GitHub:
+	git checkout -b feature/nombre-funcionalidad origin/main
+
+4. Flujo Diario de Guardado y Subida de Cambios
+	1. Preparar archivos modificados:
+		git add .
+
+	2. Guardar punto de control local con mensaje formal:
+		git commit -m "feat: descripcion breve del cambio"
+	
+	3. Sincronizar/Descargar cambios remotos de la rama develop:
+		git pull origin develop
+	
+	4. Subir la rama local hacia GitHub por primera vez:
+		git push -u origin feature/nombre-funcionalidad
+	
+	5. Subir cambios en una rama ya vinculada:
+		git push origin develop
+	
+5. Integración de Ramas (Merge)
+Unir los cambios de una rama hacia la rama activa (ej. estar parado en develop e integrar la rama de una funcionalidad):
+	git merge feature/nombre-funcionalidad
+
+6. Pasos para Resolver un Merge Conflict
+	1. Tras el mensaje de error CONFLICT, abrir el archivo en conflicto en el editor.
+	2. Eliminar manualmente las marcas de conflicto (<<<<<<<, =======, >>>>>>>) y dejar el código corregido 	final.
+	3. Marcar el archivo resuelto:
+		git add src/main/resources/application.properties
+	4. Finalizar la fusión:
+		git commit -m "fix: resolucion de conflicto en application.properties"
+
+	5. Subir la solución a GitHub:
+		git push origin develop
+
+7. Reseteo y Limpieza Emergencia (Cuando todo este incorrecto)
+Descartar cambios no guardados en archivos locales:
+	git restore .
+
+Eliminar el repositorio Git local para empezar limpio desde cero:
+	# En PowerShell:
+	Remove-Item -Recurse -Force .git
+	
+	# En CMD o Git Bash:
+	rm -rf .git
+
+Forzar que la rama local vuelva a estar idéntica a lo que está guardado en GitHub (borra commits locales fallidos):
+	git fetch origin
+	git reset --hard origin/main
+
+Sincronizar obligatoriamente el repositorio remoto con tu estado local limpio:
+	git push origin develop --force
+
+
+

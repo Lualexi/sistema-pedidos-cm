@@ -7,4 +7,5 @@ public interface OrderService {
     Order createOrder(Order order);
     List<Order> findAll();
     Order findById(Long id);
+    Order updateStatus(Long id, String status);
 }

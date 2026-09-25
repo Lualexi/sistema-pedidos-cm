@@ -1,47 +1,79 @@
 package com.gestionpedidos.modules.product.service;
 
 import com.gestionpedidos.modules.product.model.Product;
-import com.gestionpedidos.modules.product.repository.ProductInMemoryRepository;
+import com.gestionpedidos.modules.product.repository.ProductRepository;
 import com.gestionpedidos.modules.product.service.impl.ProductServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.math.BigDecimal;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
 
-    private ProductService productService;
-    private ProductInMemoryRepository productRepository;
+    @Mock
+    private ProductRepository productRepository;
+
+    @InjectMocks
+    private ProductServiceImpl productService;
+
+    private Product product;
 
     @BeforeEach
     void setUp() {
-        productRepository = new ProductInMemoryRepository();
-        productService = new ProductServiceImpl(productRepository);
+        product = Product.builder()
+                .id(1L)
+                .name("Laptop Lenovo")
+                .description("Core i7 16GB")
+                .price(new BigDecimal("1200.00"))
+                .stock(10)
+                .build();
     }
 
     @Test
-    @DisplayName("Debe registrar un producto correctamente en el catálogo")
-    void shouldCreateProductSuccessfully() {
-        // Corrección: Solo 5 argumentos según Product.java (id, name, description, price, stock)
-        Product product = new Product(null, "Arroz 1kg", "Abarrotes", 4.50, 100);
-        
-        Product created = productService.save(product);
+    void save_DeberiaGuardarProducto_CuandoDatosSeanValidos() {
+        when(productRepository.save(any(Product.class))).thenReturn(product);
 
-        assertNotNull(created.getId());
-        assertEquals("Arroz 1kg", created.getName());
-        assertEquals(100, created.getStock());
+        Product savedProduct = productService.save(product);
+
+        assertNotNull(savedProduct);
+        assertEquals("Laptop Lenovo", savedProduct.getName());
+        verify(productRepository, times(1)).save(product);
     }
 
     @Test
-    @DisplayName("Debe listar los productos almacenados")
-    void shouldReturnAllProducts() {
-        // Corrección: Solo 5 argumentos
-        productRepository.save(new Product(null, "Leche", "Lácteos", 3.80, 50));
-        
-        var products = productService.findAll();
+    void findById_DeberiaRetornarProducto_CuandoExisteId() {
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
 
-        assertFalse(products.isEmpty());
-        assertEquals(1, products.size());
+        Product foundProduct = productService.findById(1L);
+
+        assertNotNull(foundProduct);
+        assertEquals(1L, foundProduct.getId());
+    }
+
+    @Test
+    void findById_DeberiaLanzarExcepcion_CuandoNoExisteId() {
+        when(productRepository.findById(99L)).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(RuntimeException.class, () -> productService.findById(99L));
+
+        assertTrue(exception.getMessage().contains("Producto no encontrado"));
+    }
+
+    @Test
+    void save_DeberiaLanzarExcepcion_CuandoPrecioEsNegativo() {
+        product.setPrice(new BigDecimal("-50.00"));
+
+        assertThrows(RuntimeException.class, () -> productService.save(product));
+        verify(productRepository, never()).save(any());
     }
 }

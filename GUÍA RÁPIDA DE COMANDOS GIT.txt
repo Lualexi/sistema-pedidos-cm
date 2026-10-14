@@ -1,77 +1,110 @@
-GUÍA RÁPIDA DE COMANDOS GIT (INSTRUCTIVO)
-1. Configuración Inicial del Desarrollador
-Identificarse ante Git antes de hacer commits:
+====================================================================
+  GUÍA RÁPIDA DE COMANDOS GIT (INSTRUCTIVO DE TRABAJO EN EQUIPO)
+====================================================================
+
+1. CONFIGURACIÓN INICIAL DEL DESARROLLADOR
+--------------------------------------------------------------------
+Identificarse ante Git antes de hacer commits en la máquina:
 	git config --global user.name "Tu Nombre"
 	git config --global user.email "tu_correo@ejemplo.com"
 
-2. Consulta de Estado e Inspección
-Ver en qué rama estás y qué archivos han cambiado:
+
+2. CONSULTA DE ESTADO E INSPECCIÓN
+--------------------------------------------------------------------
+Ver en qué rama estás y qué archivos han sido modificados:
 	git status
 
-Ver el historial de commits en formato de árbol:
+Ver el historial de commits en formato de árbol visual:
 	git log --graph --oneline
 
-3. Creación y Movimiento entre Ramas
-Ver todas las ramas locales:
+
+3. CREACIÓN Y NAVEGACIÓN ENTRE RAMAS
+--------------------------------------------------------------------
+Listar todas las ramas locales existentes:
 	git branch
 
 Moverse a la rama de integración (develop):
 	git checkout develop
 
-Crear una nueva rama de trabajo (feature) y moverse a ella a la vez:
+Crear una nueva rama de trabajo (feature) y moverse a ella:
 	git checkout -b feature/nombre-funcionalidad
 
-Crear una rama partiendo exactamente desde la versión en GitHub:
+Crear una rama partiendo exactamente desde la versión de GitHub:
 	git checkout -b feature/nombre-funcionalidad origin/main
 
-4. Flujo Diario de Guardado y Subida de Cambios
-	1. Preparar archivos modificados:
-		git add .
 
-	2. Guardar punto de control local con mensaje formal:
-		git commit -m "feat: descripcion breve del cambio"
-	
-	3. Sincronizar/Descargar cambios remotos de la rama develop:
-		git pull origin develop
-	
-	4. Subir la rama local hacia GitHub por primera vez:
-		git push -u origin feature/nombre-funcionalidad
-	
-	5. Subir cambios en una rama ya vinculada:
-		git push origin develop
-	
-5. Integración de Ramas (Merge)
-Unir los cambios de una rama hacia la rama activa (ej. estar parado en develop e integrar la rama de una funcionalidad):
+4. FLUJO DIARIO DE TRABAJO (GUARDADO Y SUBIDA INDIVIDUAL)
+--------------------------------------------------------------------
+Paso 1: Preparar todos los archivos modificados (Staging):
+	git add .
+
+Paso 2: Guardar punto de control local con mensaje formal:
+	git commit -m "feat: descripcion breve del cambio"
+
+Paso 3: Sincronizar/Descargar cambios remotos de develop:
+	git pull origin develop
+
+Paso 4: Subir tu rama individual a GitHub por primera vez:
+	git push -u origin feature/nombre-funcionalidad
+
+
+5. INTEGRACIÓN DE FUNCIONALIDADES A DEVELOP (MERGE LOCAL Y PUSH)
+--------------------------------------------------------------------
+Paso 1: Moverte a la rama de integración develop:
+	git checkout develop
+
+Paso 2: Traer los cambios de tu rama hacia develop:
 	git merge feature/nombre-funcionalidad
 
-6. Pasos para Resolver un Merge Conflict
-	1. Tras el mensaje de error CONFLICT, abrir el archivo en conflicto en el editor.
-	2. Eliminar manualmente las marcas de conflicto (<<<<<<<, =======, >>>>>>>) y dejar el código corregido 	final.
-	3. Marcar el archivo resuelto:
-		git add src/main/resources/application.properties
-	4. Finalizar la fusión:
-		git commit -m "fix: resolucion de conflicto en application.properties"
+Paso 3: Subir la rama develop actualizada a GitHub:
+	git push origin develop
 
-	5. Subir la solución a GitHub:
-		git push origin develop
 
-7. Reseteo y Limpieza Emergencia (Cuando todo este incorrecto)
+6. RESOLUCIÓN DE MERGE CONFLICT (CONFLICTOS DE FUSIÓN)
+--------------------------------------------------------------------
+Paso 1: Al recibir el aviso CONFLICT, abrir el archivo afectado en el editor.
+Paso 2: Eliminar manualmente las marcas (<<<<<<<, =======, >>>>>>>) y dejar el código corregido final.
+Paso 3: Marcar el archivo resuelto como preparado:
+	git add src/main/resources/application.properties
+
+Paso 4: Confirmar la resolución del conflicto:
+	git commit -m "fix: resolucion de conflicto en application.properties"
+
+Paso 5: Subir la solución a GitHub:
+	git push origin develop
+
+
+7. PASO A PRODUCCIÓN (ACTUALIZAR MAIN AL FINALIZAR LA ENTREGA)
+--------------------------------------------------------------------
+Paso 1: Moverte a la rama principal (main):
+	git checkout main
+
+Paso 2: Traer los cambios probados de develop a main:
+	git merge develop
+
+Paso 3: Subir la versión estable a GitHub:
+	git push origin main
+
+Paso 4: Volver a develop para continuar con el trabajo diario:
+	git checkout develop
+
+
+8. RESERVA DE EMERGENCIAS Y LIMPIEZA DE REPOSITORIO
+--------------------------------------------------------------------
 Descartar cambios no guardados en archivos locales:
 	git restore .
 
-Eliminar el repositorio Git local para empezar limpio desde cero:
+Eliminar el repositorio Git local para iniciar limpio desde cero:
 	# En PowerShell:
 	Remove-Item -Recurse -Force .git
 	
 	# En CMD o Git Bash:
 	rm -rf .git
 
-Forzar que la rama local vuelva a estar idéntica a lo que está guardado en GitHub (borra commits locales fallidos):
+Forzar que la rama local quede idéntica a lo guardado en GitHub:
 	git fetch origin
 	git reset --hard origin/main
 
-Sincronizar obligatoriamente el repositorio remoto con tu estado local limpio:
+Sincronizar obligatoriamente el remoto borrando commits fallidos:
 	git push origin develop --force
-
-
-
+====================================================================

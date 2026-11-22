@@ -32,6 +32,17 @@ public class Order {
     @Column(length = 30)
     private String status;
 
+    @Column(name = "order_type", nullable = false, length = 20)
+    @Builder.Default
+    private String orderType = "ORDEN";
+
+    @Column(length = 150)
+    private String destination;
+
+    @Column(name = "shipping_cost", nullable = false, precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal shippingCost = BigDecimal.ZERO;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<OrderItem> items = new ArrayList<>();

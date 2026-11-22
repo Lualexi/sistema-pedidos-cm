@@ -1,5 +1,6 @@
 package com.gestionpedidos.modules.product.controller;
 
+import com.gestionpedidos.modules.product.model.InventoryMovement;
 import com.gestionpedidos.modules.product.model.Product;
 import com.gestionpedidos.modules.product.service.ProductService;
 import org.springframework.http.HttpStatus;
@@ -25,8 +26,13 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Product>> getAllProducts() {
-        return ResponseEntity.ok(productService.findAll());
+    public ResponseEntity<List<Product>> getAllProducts(@RequestParam(required = false) String search) {
+        return ResponseEntity.ok(productService.findAll(search));
+    }
+
+    @GetMapping("/movements")
+    public ResponseEntity<List<InventoryMovement>> getMovements(@RequestParam(required = false) Long productId) {
+        return ResponseEntity.ok(productService.findMovements(productId));
     }
 
     @GetMapping("/{id}")

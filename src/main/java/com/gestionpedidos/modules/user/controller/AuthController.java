@@ -57,4 +57,8 @@ public class AuthController {
 
         return ResponseEntity.ok(new AuthResponse(token, user.getRole().name()));
     }
+    @GetMapping("/health")
+    public ResponseEntity<String> health() {
+        return ResponseEntity.ok("Backend Spring Boot activo y conectado");
+    }
 }

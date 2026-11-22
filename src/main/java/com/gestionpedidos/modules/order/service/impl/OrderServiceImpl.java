@@ -4,7 +4,9 @@ import com.gestionpedidos.modules.order.model.Order;
 import com.gestionpedidos.modules.order.model.OrderItem;
 import com.gestionpedidos.modules.order.repository.OrderRepository;
 import com.gestionpedidos.modules.order.service.OrderService;
+import com.gestionpedidos.modules.product.model.InventoryMovement;
 import com.gestionpedidos.modules.product.model.Product;
+import com.gestionpedidos.modules.product.repository.InventoryMovementRepository;
 import com.gestionpedidos.modules.product.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,10 +20,16 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
+    private final InventoryMovementRepository movementRepository;
 
-    public OrderServiceImpl(OrderRepository orderRepository, ProductRepository productRepository) {
+    public OrderServiceImpl(
+            OrderRepository orderRepository,
+            ProductRepository productRepository,
+            InventoryMovementRepository movementRepository
+    ) {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
+        this.movementRepository = movementRepository;
     }
 
     @Override
@@ -31,12 +39,22 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("El pedido debe contener al menos un producto.");
         }
 
-        BigDecimal total = BigDecimal.ZERO;
+        String orderType = (order.getOrderType() == null || order.getOrderType().isBlank())
+                ? "ORDEN"
+                : order.getOrderType().trim().toUpperCase();
+        order.setOrderType(orderType);
+
+        BigDecimal shipping = order.getShippingCost() != null ? order.getShippingCost() : BigDecimal.ZERO;
+        order.setShippingCost(shipping);
+
+        BigDecimal itemsTotal = BigDecimal.ZERO;
         order.setDate(LocalDateTime.now());
 
         if (order.getStatus() == null || order.getStatus().isBlank()) {
-            order.setStatus("PENDIENTE");
+            order.setStatus("COTIZ".equals(orderType) ? "COTIZACION" : "PENDIENTE");
         }
+
+        boolean deductStock = !"COTIZ".equals(orderType);
 
         for (OrderItem item : order.getItems()) {
             if (item.getProduct() == null || item.getProduct().getId() == null) {
@@ -46,23 +64,33 @@ public class OrderServiceImpl implements OrderService {
             Product product = productRepository.findById(item.getProduct().getId())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + item.getProduct().getId()));
 
-            if (product.getStock() < item.getQuantity()) {
-                throw new RuntimeException("Stock insuficiente para el producto: " + product.getName() + " (Stock actual: " + product.getStock() + ")");
-            }
+            if (deductStock) {
+                if (product.getStock() < item.getQuantity()) {
+                    throw new RuntimeException("Stock insuficiente para el producto: " + product.getName() + " (Stock actual: " + product.getStock() + ")");
+                }
+                int newStock = product.getStock() - item.getQuantity();
+                product.setStock(newStock);
+                productRepository.save(product);
 
-            // Actualizar stock en base de datos
-            product.setStock(product.getStock() - item.getQuantity());
-            productRepository.save(product);
+                movementRepository.save(InventoryMovement.builder()
+                        .product(product)
+                        .movementType("SALIDA")
+                        .quantity(item.getQuantity())
+                        .stockAfter(newStock)
+                        .reference("Pedido " + (order.getCustomerName() != null ? order.getCustomerName() : "General"))
+                        .createdAt(LocalDateTime.now())
+                        .build());
+            }
 
             item.setProduct(product);
             item.setPrice(product.getPrice());
             item.setOrder(order);
 
             BigDecimal subtotal = product.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
-            total = total.add(subtotal);
+            itemsTotal = itemsTotal.add(subtotal);
         }
 
-        order.setTotal(total);
+        order.setTotal(itemsTotal.add(shipping));
         return orderRepository.save(order);
     }
 
@@ -83,17 +111,27 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public Order updateStatus(Long id, String status) {
         Order order = findById(id);
+        String nextStatus = status.trim().toUpperCase();
 
-        // Si se cancela el pedido, devolvemos el stock al inventario
-        if ("CANCELADO".equalsIgnoreCase(status) && !"CANCELADO".equalsIgnoreCase(order.getStatus())) {
+        if ("CANCELADO".equals(nextStatus) && !"CANCELADO".equalsIgnoreCase(order.getStatus())) {
             for (OrderItem item : order.getItems()) {
                 Product product = item.getProduct();
-                product.setStock(product.getStock() + item.getQuantity());
+                int newStock = product.getStock() + item.getQuantity();
+                product.setStock(newStock);
                 productRepository.save(product);
+
+                movementRepository.save(InventoryMovement.builder()
+                        .product(product)
+                        .movementType("REINTEGRO")
+                        .quantity(item.getQuantity())
+                        .stockAfter(newStock)
+                        .reference("Cancelación pedido #" + order.getId())
+                        .createdAt(LocalDateTime.now())
+                        .build());
             }
         }
 
-        order.setStatus(status.toUpperCase());
+        order.setStatus(nextStatus);
         return orderRepository.save(order);
     }
 }

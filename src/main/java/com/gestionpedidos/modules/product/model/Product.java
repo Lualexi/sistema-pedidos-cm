@@ -28,4 +28,21 @@ public class Product {
 
     @Column(nullable = false)
     private Integer stock;
+
+    @Column(length = 80)
+    private String category;
+
+    @Column(nullable = false, length = 10)
+    @Builder.Default
+    private String currency = "PEN";
+
+    @Column(name = "min_stock", nullable = false)
+    @Builder.Default
+    private Integer minStock = 10;
+
+    @Column(name = "unit_volume_m3", precision = 10, scale = 3)
+    private BigDecimal unitVolumeM3;
+
+    @Column(name = "unit_weight_kg", precision = 10, scale = 2)
+    private BigDecimal unitWeightKg;
 }

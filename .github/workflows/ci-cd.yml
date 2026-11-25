@@ -1,0 +1,51 @@
+name: CI/CD - Sistema de Pedidos
+
+on:
+  push:
+    branches: [ "develop", "main" ]
+  pull_request:
+    branches: [ "develop", "main" ]
+
+jobs:
+  build-and-test:
+    name: CI - Compilacion y Empaquetado (Java 21)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar codigo fuente
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Dar permisos de ejecucion a mvnw
+        run: chmod +x mvnw
+
+      - name: Compilar y generar JAR
+        run: ./mvnw clean package -DskipTests
+
+      - name: Subir artefacto JAR (Entrega Continua)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: sistema-pedidos-jar
+          path: target/*.jar
+
+  cd-deploy-check:
+    name: CD - Preparacion de Entrega
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar codigo fuente
+        uses: actions/checkout@v4
+
+      - name: Verificar artefactos y ramas de entrega
+        run: |
+          echo "Artefacto listo para etapa de despliegue en rama main"
+          git status -s

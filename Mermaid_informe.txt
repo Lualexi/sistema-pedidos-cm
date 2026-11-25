@@ -1,0 +1,125 @@
+erDiagram
+    users ||--o{ user_module_permissions : "tiene permisos (CASCADE)"
+    users ||--o{ purchase_orders : "crea (SET NULL)"
+    suppliers ||--o{ purchase_orders : "provee (NO ACTION)"
+    purchase_orders ||--|{ purchase_order_items : "contiene (CASCADE)"
+    products ||--o{ purchase_order_items : "incluido en (NO ACTION)"
+    products ||--o{ inventory_movements : "genera kardex (NO ACTION)"
+    orders ||--|{ order_items : "detalla (NO ACTION)"
+    products ||--o{ order_items : "solicitado en (NO ACTION)"
+
+    users {
+        bigint id PK
+        varchar username UK
+        varchar password
+        enum role
+        varchar full_name
+        varchar email
+        tinyint active
+        datetime last_login_at
+    }
+
+    user_module_permissions {
+        bigint id PK
+        bigint user_id FK
+        varchar module_key
+        tinyint can_view
+        tinyint can_create
+        tinyint can_edit
+        tinyint can_delete
+    }
+
+    system_settings {
+        bigint id PK
+        varchar module_key
+        varchar setting_key
+        varchar setting_value
+        varchar description
+    }
+
+    products {
+        bigint id PK
+        varchar name
+        text description
+        decimal price
+        int stock
+        varchar category
+        varchar currency
+        int min_stock
+        decimal unit_volume_m3
+        decimal unit_weight_kg
+    }
+
+    inventory_movements {
+        bigint id PK
+        bigint product_id FK
+        varchar movement_type
+        int quantity
+        int stock_after
+        varchar reference
+        datetime created_at
+    }
+
+    orders {
+        bigint id PK
+        varchar customer_name
+        datetime date
+        decimal total
+        varchar status
+        varchar order_type
+        varchar destination
+        decimal shipping_cost
+    }
+
+    order_items {
+        bigint id PK
+        bigint order_id FK
+        bigint product_id FK
+        int quantity
+        decimal price
+    }
+
+    suppliers {
+        bigint id PK
+        varchar name
+        varchar contact
+        varchar phone
+        varchar email
+    }
+
+    purchase_orders {
+        bigint id PK
+        varchar reference_code UK
+        varchar doc_type
+        bigint created_by FK
+        bigint supplier_id FK
+        decimal total_amount
+        varchar status
+        datetime created_at
+    }
+
+    purchase_order_items {
+        bigint id PK
+        bigint purchase_order_id FK
+        bigint product_id FK
+        int quantity
+        decimal unit_price
+    }
+
+    vehicles {
+        bigint id PK
+        varchar plate UK
+        varchar name
+        decimal max_weight_kg
+        decimal max_volume_m3
+        varchar status
+        datetime available_from
+    }
+
+    route_tariffs {
+        bigint id PK
+        varchar origin
+        varchar destination
+        decimal round_trip_cost
+        decimal estimated_hours
+    }
